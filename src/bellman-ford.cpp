@@ -17,6 +17,7 @@ inline void relax(Vertex &u, Vertex &v, int64_t w) {
   int temp = u.pathLen + w;
   if (v.pathLen > temp) {
     v.pathLen = temp;
+    v.previous = &u;
   }
 }
 

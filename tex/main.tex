@@ -1,0 +1,101 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+
+\usepackage{color}   %May be necessary if you want to color links
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=black, %choose some color if you want links to stand out
+    citecolor=black,
+}
+
+\usepackage[nottoc,numbib]{tocbibind} %for adding bibliography to 
+                                      %table of content
+
+\usepackage{algpseudocode}
+
+\begin{document}
+
+\title{Эмпирический анализ алгоритма Форда-Беллмана}
+\author{Козырев Сергей, 331 группа}
+\maketitle
+\newpage
+\tableofcontents
+
+\newpage
+\section{Краткое описание алгоритма}
+Алгоритм Беллмана-Форда (Bellman-Ford algorithm) решает задачу о кратчайшем 
+пути из одной вершины в общем случае, когда вес каждого из ребер может быть 
+отрицательным. Для заданного взвешенного ориентированного графа $G = (V, E)$ с 
+истоком $s$ и весовой функцией $w : E \rightarrow R$ алгоритм Беллмана-Форда 
+возвращает логическое значение, указывающее, содержится ли в графе цикл с 
+отрицательным весом, достижимый из истока. Если такой цикл существует, алгоритм 
+указывает, что решения не существует. Если же таких циклов нет, алгоритм выдаёт 
+кратчийшие пути и их веса. \cite{cormen}
+
+Алгоритм впервые был предложен Альфонсом Шимбелем (1955), но вместо него был 
+назван в честь Ричарда Беллмана и Лестера Форда, которые опубликовали его в 
+1958 и 1956 соответственно. Эдвард Мур также опубликовал этот алгоритм в 
+1957 году. \cite{schrijver}
+
+Дадим описание алгоритма в псевдокоде. Но сначала зададим две вспомогательные 
+функции.
+\begin{algorithmic}
+  \Function{Initialize-Single-Source}{$G$, $s$}
+    \For{каждой вершины $v \in G.V$}
+      \State $v.d = \infty$
+      \State $v.\pi =$ NIL
+    \EndFor
+    \State $s.d =$ 0
+  \EndFunction
+
+  \Function{Relax}{$u$, $v$, $w$}
+    \If{$v.d > u.d + w(u, v)$}
+      \State $v.d = u.d + w(u, v)$
+      \State $v.\pi = u$
+    \EndIf
+  \EndFunction
+\end{algorithmic}
+А вот и сам алгоритм
+\begin{algorithmic}
+  \Function{Bellman-Ford}{$G$, $w$, $s$}
+  \State \Call{Initialize-Single-Source}{$G$, $s$}
+    \For{$i = 1$ to $|G.V| - 1$}
+      \For{каждого ребра $(u, v) \in G.E$}
+        \State \Call{Relax}{u, v, w}
+      \EndFor
+    \EndFor
+    \For{каждого ребра $(u, v) \in G.E$}
+      \If{$u.d > u.d + w(u, v)$}
+        \State \Return FALSE
+      \EndIf
+    \EndFor
+    \State \Return TRUE
+  \EndFunction
+\end{algorithmic}
+
+\section{Математический анализ алгоритма}
+  Время работы алгоритма Беллмана-Форда составляет $O(V\,E)$, поскольку
+  инициализация в строке 1 занимает время $\Theta(V)$, на каждый из $|V| - 1$ 
+  проходов по рёбрам в строках 2-4 требуется время $\Theta(E)$, а на выполнение цикла 
+  \texttt{for} в строках 5-7 затрачивается время $O(E)$.\cite{cormen}
+\section{Характеристики входных данных и их генератора}
+\section{Реализация алгоритма}
+\section{Полученные результаты и их анализ}
+\begin{thebibliography}{9}
+  \bibitem{cormen}
+    Томас Х. Кормен, Чарльз И. Лейзерсон, Рональд Л. Ривест, Клиффорд Штайн
+    \textit{Алгоритмы: построение и анализ}
+    - 3-е изд - М.: Издательский дом «Вильямс», 2013. — ISBN 978-5-8459-1794-2.
+  \bibitem{schrijver}
+    Schrijver, Alexander (2005). 
+    \href{https://homepages.cwi.nl/~lex/files/histco.pdf}
+    {"On the history of combinatorial optimization (till 1960)"} (PDF).
+    \textit{Handbook of Discrete Optimization.} Elsevier: 1–68.
+\end{thebibliography}
+\section{Характеристики использованной вычислительной среды и оборудования}
+\end{document}

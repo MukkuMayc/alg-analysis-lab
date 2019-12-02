@@ -32,7 +32,7 @@ bool BellmanFord(vector<Vertex> &vertices, int s) {
   }
   for (Vertex &u: vertices) {
     for (auto &edge: u.edges) {
-      if ((*edge.first).pathLen > u.pathLen + edge.second) {
+      if (u.pathLen < INT64_MAX and (*edge.first).pathLen > u.pathLen + edge.second) {
         return false;
       }
     }

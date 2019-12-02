@@ -14,7 +14,7 @@ struct Vertex {
 };
 
 inline void relax(Vertex &u, Vertex &v, int64_t w) {
-  int temp = u.pathLen + w;
+  int64_t temp = u.pathLen == INT64_MAX ? INT64_MAX : u.pathLen + w;
   if (v.pathLen > temp) {
     v.pathLen = temp;
     v.previous = &u;

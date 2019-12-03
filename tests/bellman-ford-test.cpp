@@ -150,6 +150,23 @@ TEST(BellmanFord, PosNegEdgesNegCycles) {
   ASSERT_EQ(thereAreNotNegativeCycles, false);
 }
 
+TEST(BellmanFord, NegCycleUnreachable) {
+  Graph G(5);
+  G.E.emplace_back(make_tuple(&G.V[0], &G.V[1], 4));
+  G.E.emplace_back(make_tuple(&G.V[2], &G.V[3], 8));
+  G.E.emplace_back(make_tuple(&G.V[3], &G.V[4], 9));
+  G.E.emplace_back(make_tuple(&G.V[4], &G.V[2], -20));
+  G.E.emplace_back(make_tuple(&G.V[4], &G.V[1], -10));
+  bool thereAreNotNegativeCycles = BellmanFord(G, 0);
+
+  ASSERT_EQ(thereAreNotNegativeCycles, true);
+  ASSERT_EQ(G.V[0].pathLen, 0);
+  ASSERT_EQ(G.V[1].pathLen, 4);
+  ASSERT_EQ(G.V[2].pathLen, INT64_MAX);
+  ASSERT_EQ(G.V[3].pathLen, INT64_MAX);
+  ASSERT_EQ(G.V[4].pathLen, INT64_MAX);
+}
+
 TEST(Generator, Random) {
   auto now = chrono::system_clock::now();
   default_random_engine generator(now.time_since_epoch().count());

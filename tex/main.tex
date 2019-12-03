@@ -16,7 +16,18 @@
 \usepackage[nottoc,numbib]{tocbibind} %for adding bibliography to 
                                       %table of content
 
-\usepackage{algpseudocode}
+% \usepackage{algpseudocode}
+\usepackage{adjustbox}
+\usepackage{csvsimple}
+
+\usepackage[noend]{algorithmic}
+\newcommand{\TITLE}[1]{\item[#1]}
+\renewcommand{\algorithmiccomment}[1]{$/\!/$ \parbox[t]{4.5cm}{\raggedright #1}}
+% ugly hack for for/while
+\newbox\fixbox
+\renewcommand{\algorithmicdo}{\setbox\fixbox\hbox{\ {} }\hskip-\wd\fixbox}
+% end of hack
+\newcommand{\algcost}[2]{\strut\hfill\makebox[1.5cm][l]{#1}\makebox[4cm][l]{#2}}
 
 \begin{document}
 
@@ -29,66 +40,98 @@
 \newpage
 \section{Краткое описание алгоритма}
 Алгоритм Беллмана-Форда (Bellman-Ford algorithm) решает задачу о кратчайшем 
-пути из одной вершины в общем случае, когда вес каждого из ребер может быть 
-отрицательным. Для заданного взвешенного ориентированного графа $G = (V, E)$ с 
+пути из одной вершины в общем случае, когда вес каждого из рёбер может быть 
+отрицательным.
+Для заданного взвешенного ориентированного графа $G = (V, E)$ с
 истоком $s$ и весовой функцией $w : E \rightarrow R$ алгоритм Беллмана-Форда 
 возвращает логическое значение, указывающее, содержится ли в графе цикл с 
-отрицательным весом, достижимый из истока. Если такой цикл существует, алгоритм 
-указывает, что решения не существует. Если же таких циклов нет, алгоритм выдаёт 
-кратчийшие пути и их веса. \cite{cormen}
+отрицательным весом, достижимый из истока.
+Если такой цикл существует, алгоритм указывает, что решения не существует.
+Если же таких циклов нет, алгоритм выдаёт кратчийшие пути и их
+веса.\cite{cormen}
 
 Алгоритм впервые был предложен Альфонсом Шимбелем (1955), но вместо него был 
 назван в честь Ричарда Беллмана и Лестера Форда, которые опубликовали его в 
-1958 и 1956 соответственно. Эдвард Мур также опубликовал этот алгоритм в 
-1957 году. \cite{schrijver}
+1958 и 1956 соответственно.
+Эдвард Мур также опубликовал этот алгоритм в 1957 году.\cite{schrijver}
 
-Дадим описание алгоритма в псевдокоде. Но сначала зададим две вспомогательные 
-функции.
-\begin{algorithmic}
-  \Function{Initialize-Single-Source}{$G$, $s$}
-    \For{каждой вершины $v \in G.V$}
-      \State $v.d = \infty$
-      \State $v.\pi =$ NIL
-    \EndFor
-    \State $s.d =$ 0
-  \EndFunction
+Этот алгоритм использует, например, протокол маршрутной информации 
+(RIP).\cite{semenov}
 
-  \Function{Relax}{$u$, $v$, $w$}
-    \If{$v.d > u.d + w(u, v)$}
-      \State $v.d = u.d + w(u, v)$
-      \State $v.\pi = u$
-    \EndIf
-  \EndFunction
+Дадим описание алгоритма в псевдокоде.
+Будем использовать две вспомогательные функции: 
+Initialize-Single-Source и Relax.
+Псевдокод взят из Кормена.\cite{cormen}
+\begin{algorithmic}[1]
+  \TITLE{\textsc{Initialize-Single-Source}$(G, s)$}
+  \FOR{каждой вершины $v \in G.V$}
+    \STATE $v.d = \infty$
+    \STATE $v.\pi =$ NIL
+  \ENDFOR
+  \STATE $s.d = 0$
 \end{algorithmic}
-А вот и сам алгоритм
-\begin{algorithmic}
-  \Function{Bellman-Ford}{$G$, $w$, $s$}
-  \State \Call{Initialize-Single-Source}{$G$, $s$}
-    \For{$i = 1$ to $|G.V| - 1$}
-      \For{каждого ребра $(u, v) \in G.E$}
-        \State \Call{Relax}{u, v, w}
-      \EndFor
-    \EndFor
-    \For{каждого ребра $(u, v) \in G.E$}
-      \If{$u.d > u.d + w(u, v)$}
-        \State \Return FALSE
-      \EndIf
-    \EndFor
-    \State \Return TRUE
-  \EndFunction
+\begin{algorithmic}[1]
+  \TITLE{\textsc{Relax}$(u, v, w)$}
+  \IF{$v.d > u.d + w(u, v)$}
+    \STATE $v.d = u.d + w(u, v)$
+    \STATE $v.\pi = u$
+  \ENDIF
+\end{algorithmic}
+\begin{algorithmic}[1]
+  \TITLE{\textsc{Bellman-Ford}$(G, w, s)$}
+  \STATE \textsc{Initialize-Single-Source}$(G, s)$
+  \FOR{$i = 1$ to $|G.V| - 1$}
+    \FOR{каждого ребра $(u, v) \in G.E$}
+      \STATE \textsc{Relax}$(u, v, w)$
+    \ENDFOR
+  \ENDFOR
+  \FOR{каждого ребра $(u, v) \in G.E$}
+    \IF{$v.d > u.d + w(u, v)$}
+      \RETURN FALSE
+    \ENDIF
+  \ENDFOR
+  \RETURN TRUE
 \end{algorithmic}
 
 \section{Математический анализ алгоритма}
   Время работы алгоритма Беллмана-Форда составляет $O(V\,E)$, поскольку
   инициализация в строке 1 занимает время $\Theta(V)$, на каждый из $|V| - 1$ 
-  проходов по рёбрам в строках 2-4 требуется время $\Theta(E)$, а на выполнение цикла 
-  \texttt{for} в строках 5-7 затрачивается время $O(E)$.\cite{cormen}
+  проходов по рёбрам в строках 2--4 требуется время $\Theta(E)$, а на выполнение цикла
+  \texttt{for} в строках 5--7 затрачивается время $O(E)$.\cite{cormen}
+
 \section{Характеристики входных данных и их генератора}
+На вход поступает граф и индекс вершины, от которой ищем пути.
+Граф задаётся как вектор вершин и вектор рёбер.
+Вершины хранят вес пути от них до исходной вершины и предыдущую в этом пути вершину.
+Рёбра задаются черёз упорядоченную тройку: начало, конец и вес.
+
+Генератор создаёт граф по заданному количеству вершин и рёбер.
+Сначала он создаёт вектор вершин, потом для каждого ребра случайным образом 
+выбирает начало, конец и вес.
+В результате получается взвешенный направленный псевдограф с петлями.
+
+Код генератора: \url{https://github.com/MukkuMayc/alg-analysis-lab/blob/master/src/generator.cpp}
+
+Единица измерения трудоёмкости - время(в секундах).
 \section{Реализация алгоритма}
+Алгоритм:
+\url{https://github.com/MukkuMayc/alg-analysis-lab/blob/master/src/bellman-ford.cpp} \\
+Здесь собирается статистика:
+\url{https://github.com/MukkuMayc/alg-analysis-lab/blob/master/src/main.cpp}
+\newpage
 \section{Полученные результаты и их анализ}
+\begin{center}
+  \begin{table}[h]
+    \scalebox{0.38}{
+      \csvautotabular{output.csv}{}% use head of csv as column names
+    }
+    \caption{Время выполнения, c}
+  \end{table}
+\end{center}
+В целом, данные соотносятся с приведённой выше оценкой сложности алгоритма.
 \begin{thebibliography}{9}
   \bibitem{cormen}
-    Томас Х. Кормен, Чарльз И. Лейзерсон, Рональд Л. Ривест, Клиффорд Штайн
+    Томас Х.Кормен, Чарльз И.Лейзерсон, Рональд Л.Ривест, Клиффорд Штайн
     \textit{Алгоритмы: построение и анализ}
     - 3-е изд - М.: Издательский дом «Вильямс», 2013. — ISBN 978-5-8459-1794-2.
   \bibitem{schrijver}
@@ -96,6 +139,16 @@
     \href{https://homepages.cwi.nl/~lex/files/histco.pdf}
     {"On the history of combinatorial optimization (till 1960)"} (PDF).
     \textit{Handbook of Discrete Optimization.} Elsevier: 1–68.
+  \bibitem{semenov}
+    Семёнов Ю.А.,
+    \href{http://citforum.ru/nets/semenov/4/44/rip44111.shtml}{Протокол маршрутизации RIP}
+    / Телекоммуникационные технологии, 2004
+    
 \end{thebibliography}
 \section{Характеристики использованной вычислительной среды и оборудования}
+ОС: Arch Linux x86\_64 \\
+Ядро: 5.3.13-arch1-1 \\
+ЦП: Intel i3-3240 (4) @ 3.400GHz \\
+Компилятор: clang version 9.0.0
+
 \end{document}

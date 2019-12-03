@@ -3,38 +3,44 @@
 
 #include <cstdint>
 #include <vector>
+#include <tuple>
 
 using namespace std;
 
 struct Vertex {
   int64_t pathLen;
   Vertex* previous;
-  vector<pair<Vertex*, int64_t>> edges;
   Vertex(): pathLen(INT64_MAX), previous(nullptr) {}
 };
 
-inline void relax(Vertex &u, Vertex &v, int64_t w) {
-  int64_t temp = u.pathLen == INT64_MAX ? INT64_MAX : u.pathLen + w;
-  if (v.pathLen > temp) {
-    v.pathLen = temp;
-    v.previous = &u;
+using Edge = tuple<Vertex*, Vertex*, int64_t>;
+
+struct Graph {
+  vector<Vertex> V;
+  vector<Edge> E;
+  explicit Graph(int vertNum): V(vertNum), E() {}
+  Graph(): V(), E() {}
+};
+
+inline void relax(Edge &edge) {
+  int64_t temp = get<0>(edge)->pathLen < INT64_MAX ? get<0>(edge)->pathLen + get<2>(edge) : INT64_MAX;
+  if (get<1>(edge)->pathLen > temp) {
+    get<1>(edge)->pathLen = temp;
+    get<1>(edge)->previous = get<0>(edge);
   }
 }
 
-bool BellmanFord(vector<Vertex> &vertices, int s) {
-  vertices[s].pathLen = 0;
-  for (int i = 0; i < vertices.size() - 1; ++i) {
-    for (Vertex &u: vertices) {
-      for (auto &edge: u.edges) {
-        relax(u, *edge.first, edge.second);
-      }
+inline bool BellmanFord(Graph &G, int s) {
+  G.V[s].pathLen = 0;
+  int limit = G.V.size() - 1;
+  for (int i = 0; i < limit; ++i) {
+    for (auto &edge: G.E) {
+      relax(edge);
     }
   }
-  for (Vertex &u: vertices) {
-    for (auto &edge: u.edges) {
-      if (u.pathLen < INT64_MAX and (*edge.first).pathLen > u.pathLen + edge.second) {
-        return false;
-      }
+  for (auto &edge: G.E) {
+    if (get<0>(edge)->pathLen < INT64_MAX and get<1>(edge)->pathLen > get<0>(edge)->pathLen + get<2>(edge)) {
+      return false;
     }
   }
   return true;

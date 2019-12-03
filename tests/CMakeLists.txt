@@ -18,5 +18,6 @@ macro(package_add_test TESTNAME FILES LIBRARIES)
     set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
 endmacro()
 
-set(TEST_NAME bellman-ford-test)
-package_add_test(${TEST_NAME} ${TEST_NAME}.cpp bellman-ford-lib)
+set(SOURCES bellman-ford-test.cpp)
+set (LIBS generator-lib bellman-ford-lib)
+package_add_test(bellman-ford-test ${SOURCES} ${LIBS})

@@ -7,7 +7,7 @@
 
 using namespace std;
 
-Graph generateGraph(int vertNum, int edgeNum) {
+Graph generateGraph(const int vertNum, const int edgeNum) {
   auto now = chrono::system_clock::now();
   default_random_engine generator(now.time_since_epoch().count());
   uniform_int_distribution<int> verticesDistribution(0, vertNum - 1);
@@ -18,7 +18,8 @@ Graph generateGraph(int vertNum, int edgeNum) {
     int u = verticesDistribution(generator);
     int v = verticesDistribution(generator);
     int w = pathLenDistribution(generator);
-    G.E.emplace_back(make_tuple(&G.V[u], &G.V[v], w));
+    G.E.emplace_back(make_pair(&G.V[u], &G.V[v]));
+    G.weight.emplace_back(w);
   }
   return G;
 }

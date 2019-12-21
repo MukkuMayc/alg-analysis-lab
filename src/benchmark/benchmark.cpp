@@ -21,9 +21,17 @@ static void CustomArguments(benchmark::internal::Benchmark* b) {
       b->Args({i, j});
 }
 
+static void Args(benchmark::internal::Benchmark* b) {
+  for (int i = 1e3; i <= 2e3; i += 100) {
+    for (int j = 4e3; j <= 5e3; j += 100) {
+      b->Args({i, j});
+    }
+  }
+}
+
 BENCHMARK(BM_BellmanFord)
-    ->Apply(CustomArguments)
-    ->Iterations(10);
+    ->Apply(Args)
+    ->Iterations(100);
 
 
 BENCHMARK_MAIN();

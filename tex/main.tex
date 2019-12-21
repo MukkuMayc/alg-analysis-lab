@@ -20,6 +20,10 @@
 \usepackage{adjustbox}
 \usepackage{csvsimple}
 
+\usepackage{graphicx} % for images
+
+\usepackage{float} % for floating figure
+
 \usepackage[noend]{algorithmic}
 \newcommand{\TITLE}[1]{\item[#1]}
 \renewcommand{\algorithmiccomment}[1]{$/\!/$ \parbox[t]{4.5cm}{\raggedright #1}}
@@ -120,21 +124,32 @@ Initialize-Single-Source и Relax.
 Чтобы сгенерировать данные о времени выполнения, 
 на вход подаём количество вершин и рёбер, по ним генерируем граф 
 и замеряем время выполнения алгоритма.
+Единица измерения трудоёмкости - время(в наносекундах). Для замера использовался Google Benchmark.
 
-Количество вершин меняется от 100 до 1600, увеличиваясь в 2 раза.
-Количество рёбер, аналогично, меняется от 3200 до 102400, увеличиваясь в 2 раза.
-Для замера использовался Google Benchmark, для каждой пары параметров 
-алгоритм запускался 10 раз. \\
-Единица измерения трудоёмкости - время(в наносекундах).
+Было проведено два эксперимента:
+\begin{itemize}
+  \item Количество вершин меняется от 100 до 1600, увеличиваясь в 2 раза.
+  Количество рёбер, аналогично, меняется от 3200 до 102400, увеличиваясь в 2 раза.
+  Для каждой пары параметров алгоритм запускался 10 раз.
+  В данном эксперименте мы рассматриваем изменение времени при удвоении данных.
+  \item 
+  Количество вершин меняется от 1000 до 2000 включительно с шагом в 100.
+  Количество рёбер меняется от 4000 до 5000 включительно с шагом в 100.
+  Для каждой пары параметров алгоритм запускался 100 раз,
+  после чего данные усреднялись и полученный результат брался за
+  значение при этих параметрах.
+  По результатам данного эксперимента мы строим график и линейную модель (Рис. \ref{data_and_regression})
+\end{itemize}
+
 \section{Реализация алгоритма}
 Алгоритм:
 \url{https://github.com/MukkuMayc/alg-analysis-lab/blob/master/src/bellman-ford.cpp} \\
 Здесь собирается статистика:
 \url{https://github.com/MukkuMayc/alg-analysis-lab/blob/master/src/benchmark/benchmark.cpp}
 \section{Полученные результаты и их анализ}
-В таблице 1 приведены полученные данные.
-В таблице 2 значения вычислялись на основе значений таблицы 1 следующим образом
-($a_{ij}$ - элемент i-й строки, j-го столбца таблицы 2, $b_{ij}$ - элемент таблицы 2):
+В таблице \ref{tbl:data1} приведены полученные в первом эксперименте данные. \\
+В таблице \ref{tbl:data1_ratio} значения вычислялись на основе значений таблицы \ref{tbl:data1} следующим образом
+($a_{ij}$ - элемент i-й строки, j-го столбца таблицы \ref{tbl:data1_ratio}, $b_{ij}$ - элемент таблицы \ref{tbl:data1}):
 \begin{itemize}
   \item если у $b_{ij}$ есть ячейки выше и левее, то 
   $a_{ij} = \frac12 \left(\frac{b_{ij}}{b_{i-1, j}} + \frac{b_{ij}}{b_{i, j-1}}\right)$
@@ -144,31 +159,56 @@ Initialize-Single-Source и Relax.
   $a_{ij} = \frac{b_{ij}}{b_{i, j-1}}$
   \item в ином случае, $a_{ij} = 0$
 \end{itemize}
+\newpage
 \begin{center}
   \begin{table}[h]
     \centering
     \scalebox{0.9}{
-      \csvautotabular{results.csv}{}% use head of csv as column names
+      \csvautotabular{data1.csv}{}% use head of csv as column names
     }
-    \caption{Время выполнения, нc}
+    \caption{Время выполнения в первом эксперименте, нc}
+    \label{tbl:data1}
   \end{table}
   \begin{table}[h]
     \centering
     \scalebox{0.9}{
-      \csvautotabular{results_diff.csv}{}% use head of csv as column names
+      \csvautotabular{data1_diff.csv}{}% use head of csv as column names
     }
-    \caption{Среднее отношение к значениям сверху и слева}
+    \caption{Смысл содержимого описан выше}
+    \label{tbl:data1_ratio}
   \end{table}
 \end{center}
-В целом, данные соотносятся с приведённой выше оценкой сложности алгоритма.
-По каждому параметру в отдельности зависимость линейная.
+
+Здесь видно, что при удвоении данных время также удваивается.
+Действительно, это совпадает с теоретическим соотношением:
+\[
+  \frac{T(2n)}{T(n)} = \frac{2 (c E V)}{c E V} = 2, \textrm{V - количество вершин, E - количество рёбер}, c = const
+\]
+
+Теперь перейдём ко второму эксперименту. \\
+Его результаты находятся здесь:
+\url{https://github.com/MukkuMayc/alg-analysis-lab/blob/master/tex/data2.csv} \\
+По ним был построен график (Рис. \ref{data_and_regression}). По оси X находится произведение $E \cdot V$, где E - количество рёбер, а V - количество вершин.
+По оси Y - время выполнения. Также был построен график линейной регрессии.
+
+\begin{figure}[H]
+  \centering
+  \def\svgwidth{\columnwidth}
+  \input{data_and_regression.pdf_tex}
+  \caption{Данные второго эксперимента и линейная регрессия}
+  \label{data_and_regression}
+\end{figure}
+
+Мы видим, что данные соотносятся с приведённой выше оценкой сложности алгоритма,
+время прямо пропорционально величине $E \cdot V$.
+По каждому параметру в отдельности зависимость линейная, это видно в первом эксперименте.
 \begin{thebibliography}{9}
   \bibitem{cormen}
     Томас Х.Кормен, Чарльз И.Лейзерсон, Рональд Л.Ривест, Клиффорд Штайн
     \textit{Алгоритмы: построение и анализ}
     - 3-е изд - М.: Издательский дом «Вильямс», 2013. — ISBN 978-5-8459-1794-2.
   \bibitem{schrijver}
-    Schrijver, Alexander (2005). 
+    Schrijver, Alexander (2005).
     \href{https://homepages.cwi.nl/~lex/files/histco.pdf}
     {"On the history of combinatorial optimization (till 1960)"} (PDF).
     \textit{Handbook of Discrete Optimization.} Elsevier: 1–68.
@@ -176,7 +216,6 @@ Initialize-Single-Source и Relax.
     Семёнов Ю.А.,
     \href{http://citforum.ru/nets/semenov/4/44/rip44111.shtml}{Протокол маршрутизации RIP}
     / Телекоммуникационные технологии, 2004
-    
 \end{thebibliography}
 \section{Характеристики использованной вычислительной среды и оборудования}
 ОС: Arch Linux x86\_64 \\
